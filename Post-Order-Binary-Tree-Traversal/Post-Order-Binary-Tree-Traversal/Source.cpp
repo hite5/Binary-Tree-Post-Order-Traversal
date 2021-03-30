@@ -13,57 +13,65 @@ typedef struct TreeNode
 // Build the tree out based off the two vectors. This may not be the most efficient approach. There is most likely a way to
 // print out post-order without creating the whole tree.
 
-void createTree(vector<int> preOrder, vector<int> inOrder, vector<int>& postOrder, int start, int stop, TreeNode* curr, int& iter, int& pos)
+void createTree(vector<int> preOrder, vector<int> inOrder, vector<int>& postOrder, int start, int stop, TreeNode* curr, int& iter, int& pos, int len)
 {
-    //cout << iter << " " << pos << endl;
-    if (start == stop)
+    // A base case for this recurion is that if you are on the last number of preOrder array, then you can't go any further.
+    // Add the number to the post-order.
+    if (iter == len)
     {
-
-        curr->left = NULL;
-        curr->right = NULL;
         postOrder[pos] = curr->label;
         pos++;
         return;
     }
-    for (int i = start; i < stop; i++)
+    // The second base case is if the start and stop is equal then you add the current nodes value to the post-order vector.
+    else if (start == stop)
     {
-        if (curr->label == inOrder[i])
+        postOrder[pos] = curr->label;
+        pos++;
+        return;
+    }
+    else
+    {
+        for (int i = start; i <= stop; i++)
         {
-            //cout << "curr->label == " << inOrder[i] << endl << endl;
-            if (i == start)
+            if (curr->label == inOrder[i])
             {
-                // curr has no left child or curr is left child? Still working it out
-                // iter needs to increment
-                postOrder[pos] = curr->label;
-                pos++;
-                return;
-            }
-            else if (i == stop)
-            {
-                // curr has no right child or curr is left child? Still working it out
-                // iter needs to increment
-                postOrder[pos] = curr->label;
-                pos++;
-                return;
-            }
-            else
-            {
-                iter++;
-                curr->left = new TreeNode(preOrder[iter]);
-                //cout << "Left: " << curr->left->label << endl;
-                createTree(preOrder, inOrder, postOrder, start, i - 1, curr->left, iter, pos);
+                if (i == start)
+                {
+                    // curr node cannot have a left child since it is at the beginning of the list. Only continue with right child.
+                    // iter needs to increment
+                    iter++;
+                    curr->right = new TreeNode(preOrder[iter]);
+                    createTree(preOrder, inOrder, postOrder, i + 1, stop, curr->right, iter, pos, len);
+                    break;
+                }
+                else if (i == stop)
+                {
+                    // curr node cannot have right child since it is at the end of the list. Continue with left child.
+                    // iter needs to increment
+                    iter++;
+                    curr->left = new TreeNode(preOrder[iter]);
+                    createTree(preOrder, inOrder, postOrder, start, i - 1, curr->left, iter, pos, len);
+                    break;
+                }
+                else
+                {
+                    // Curr node is in the middle of the inOrder list so it has both a left and right child.
+                    iter++;
+                    curr->left = new TreeNode(preOrder[iter]);
+                    createTree(preOrder, inOrder, postOrder, start, i - 1, curr->left, iter, pos, len);
 
-                iter++;
-                curr->right = new TreeNode(preOrder[iter]);
-                //cout << "Right: " << curr->right->label << endl;            
-                createTree(preOrder, inOrder, postOrder, i + 1, stop, curr->right, iter, pos);
+                    iter++;
+                    curr->right = new TreeNode(preOrder[iter]);
+                    createTree(preOrder, inOrder, postOrder, i + 1, stop, curr->right, iter, pos, len);
+                    break;
+                }
             }
         }
+        // add the curr.label to postOrder.
+        postOrder[pos] = curr->label;
+        pos++;
     }
-    // add the curr.label to postOrder.
-    //cout << curr->label << " pos = " << iter << endl;
-    postOrder[pos] = curr->label;
-    pos++;
 }
 
 int main()
@@ -82,7 +90,7 @@ int main()
     TreeNode* root = new TreeNode(preorder[0]);
     int iter = 0;
     int pos = 0;
-    createTree(preorder, inorder, postorder, 0, n, root, iter, pos);
+    createTree(preorder, inorder, postorder, 0, n - 1, root, iter, pos, n - 1);
 
     // output the post order traversal
     for (int i = 0; i < n; i++) cout << postorder[i] << " ";
